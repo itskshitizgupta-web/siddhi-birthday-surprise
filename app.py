@@ -20,11 +20,9 @@ ASSETS = ROOT / "assets"
 def local_images():
     extensions = {".jpg", ".jpeg", ".png", ".webp"}
     images = []
-
     for p in ROOT.rglob("*"):
         if p.is_file() and p.suffix.lower() in extensions:
             images.append(p)
-
     return sorted(images)
 
 def image_data_uri(path):
@@ -121,7 +119,26 @@ html, body, [class*="css"] {
     color: #856477;
     font-size: .9rem;
 }
+
+/* Bright, readable birthday game cards */
+.game-card {
+    background: #ffffff !important;
+    color: #351b2d !important;
+    border-radius: 24px;
+    padding: 24px;
+    margin: 14px 0;
+    box-shadow: 0 10px 30px rgba(100, 35, 75, .12);
+    border: 2px solid #ffd1e3;
+}
+.game-card h2, .game-card h3, .game-card p, .game-card b {
+    color: #351b2d !important;
+}
+.game-title {
+    color: #b52f6d !important;
+    font-weight: 700;
+}
 </style>
+
 """, unsafe_allow_html=True)
 
 # ---------- Navigation ----------
@@ -187,40 +204,91 @@ if st.session_state.page == "home":
 
 # ---------- GAME ----------
 elif st.session_state.page == "game":
-    st.markdown("""<div class="hero"><div class="script" style="font-size:3.5rem">A Little Game 🎮</div><p class="subtitle">Let's see how well you know this friendship! 😌</p></div>""", unsafe_allow_html=True)
+    st.markdown("""
+    <div class="hero">
+        <div class="script" style="font-size:3.4rem">Siddhi's Lucky Heart Challenge 💗</div>
+        <p class="subtitle">Pick a heart, answer a few surprises, and unlock your birthday message! ✨</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-    questions = [
-        ("q1", "Which one sounds most like us? 🫶",
-         ["Talking for hours", "Ignoring each other 😂", "Only saying hello", "Never sharing anything"], 0),
-        ("q2", "What should Siddhi always remember about herself? ✨",
-         ["She isn't capable", "She should give up", "She is strong and can achieve what she wants", "She should stop dreaming"], 2),
-        ("q3", "What's the correct birthday rule? 🎂",
-         ["No cake", "No smiles", "Cake + smiles + unlimited happiness", "Only homework"], 2),
-        ("q4", "What does a best friend deserve? 💗",
-         ["Support, care and lots of laughter", "Silence forever", "Extra problems", "Nothing"], 0),
-        ("q5", "Final question... who is very lucky to have Siddhi? 🥹",
-         ["Me ❤️", "A random potato", "Nobody", "The birthday cake"], 0),
-    ]
+    if "heart_round" not in st.session_state:
+        st.session_state.heart_round = 1
+    if "heart_wins" not in st.session_state:
+        st.session_state.heart_wins = 0
+    if "heart_target" not in st.session_state:
+        st.session_state.heart_target = random.randint(1, 6)
+    if "heart_message" not in st.session_state:
+        st.session_state.heart_message = ""
 
-    for key, question, options, correct in questions:
-        st.markdown(f'<div class="card"><h3>{question}</h3></div>', unsafe_allow_html=True)
-        answer = st.radio("Choose one:", options, key=key, index=None)
-        if answer is not None and key not in st.session_state.answered:
-            if options.index(answer) == correct:
-                st.session_state.score += 1
-            st.session_state.answered.add(key)
+    st.markdown(f"""
+    <div class="game-card">
+      <h2 class="game-title">💗 Round {st.session_state.heart_round} / 3</h2>
+      <p><b>Find the lucky heart!</b> One of these six hearts hides a special surprise.</p>
+      <p>Lucky hearts found: <b>{st.session_state.heart_wins}</b> 🌟</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-    if len(st.session_state.answered) == len(questions):
-        st.success(f"🎉 Your score: {st.session_state.score}/{len(questions)}")
-        if st.session_state.score >= 4:
-            st.balloons()
-            st.markdown('<div class="card" style="text-align:center"><h2>Okayyy, you know me/us pretty well! 😂❤️</h2><p class="quote">Now you deserve the next surprise...</p></div>', unsafe_allow_html=True)
-        else:
-            st.markdown("""<div class="card" style="text-align:center"><h2>Nice try! 😂❤️</h2><p class="quote">Luckily, birthdays aren't graded.</p></div>""", unsafe_allow_html=True)
+    heart_cols = st.columns(6)
+    for i, col in enumerate(heart_cols, start=1):
+        with col:
+            if st.button("💗", key=f"heart_{st.session_state.heart_round}_{i}", use_container_width=True):
+                if i == st.session_state.heart_target:
+                    st.session_state.heart_wins += 1
+                    st.session_state.heart_message = "🎉 You found it! Just like you, this heart was impossible to miss. ❤️"
+                else:
+                    st.session_state.heart_message = "😂 Oops! Not this one. Try another heart!"
 
-    if st.button("📸 Go to memories", use_container_width=True):
-        st.session_state.page = "memories"
-        st.rerun()
+                if st.session_state.heart_round < 3:
+                    st.session_state.heart_round += 1
+                    st.session_state.heart_target = random.randint(1, 6)
+                else:
+                    st.session_state.heart_round = 4
+                st.rerun()
+
+    if st.session_state.heart_message:
+        st.markdown(f"""
+        <div class="game-card" style="text-align:center">
+          <h3>{st.session_state.heart_message}</h3>
+        </div>
+        """, unsafe_allow_html=True)
+
+    if st.session_state.heart_round >= 4:
+        st.balloons()
+        st.markdown("""
+        <div class="game-card" style="text-align:center">
+          <h2 class="game-title">🎁 Challenge Complete!</h2>
+          <p style="font-size:1.1rem">
+          Siddhi, whether you found every lucky heart or not, here's the real truth:
+          <b>you are one of the luckiest things that happened in my life, and I feel blessed to have you. ❤️</b>
+          </p>
+          <p style="font-size:1.05rem">
+          You are strong, brave and capable of achieving anything you set your heart on. 🌟
+          </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        if st.button("🔄 Play the heart challenge again", use_container_width=True):
+            st.session_state.heart_round = 1
+            st.session_state.heart_wins = 0
+            st.session_state.heart_target = random.randint(1, 6)
+            st.session_state.heart_message = ""
+            st.rerun()
+
+        if st.button("📸 Unlock the memories", use_container_width=True, type="primary"):
+            st.session_state.page = "memories"
+            st.rerun()
+    else:
+        st.markdown("""
+        <div class="game-card">
+          <h3 class="game-title">🌷 Bonus question</h3>
+          <p><b>What should Siddhi always remember?</b></p>
+          <p>💪 She is strong &nbsp; • &nbsp; 🦁 She is brave &nbsp; • &nbsp; 🌟 She can achieve what she wants</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        if st.button("💌 Give me the next surprise", use_container_width=True):
+            st.session_state.page = "memories"
+            st.rerun()
 
 # ---------- MEMORIES ----------
 elif st.session_state.page == "memories":
@@ -231,11 +299,11 @@ elif st.session_state.page == "memories":
         st.info("📂 No photos found yet. Put JPG/PNG/WEBP photos inside the app's `assets` folder, then refresh the page.")
     else:
         captions = [
-            "A moment worth keeping forever. 🫶",
-            "One of those memories that makes me smile. 🌷",
-            "Proof that ordinary days can become special. ✨",
-            "Another little chapter of our story. 💗",
-            "This one deserves a permanent place in my memories. 🥹",
+            "One of my favourite memories with you. ❤️",
+            "That smile deserves its own little corner here. 🌷",
+            "A beautiful moment that I am glad I get to remember. ✨",
+            "One more chapter in our little collection of memories. 💗",
+            "Some pictures become memories; some memories become priceless. 🥹",
         ]
         for i, img in enumerate(imgs):
             st.markdown('<div class="memory">', unsafe_allow_html=True)
@@ -371,4 +439,3 @@ if music.exists():
     st.audio(str(music))
 else:
     st.caption("Optional: put a file named `birthday_music.mp3` inside the `assets` folder to add music.")
-        
