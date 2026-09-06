@@ -394,7 +394,7 @@ elif st.session_state.page == "final":
     <div class="hero">
         <div class="confetti">🎉 ✨ 🎊 💗 🎊 ✨ 🎉</div>
         <div class="script" style="font-size:clamp(3rem,9vw,6rem)">HAPPY BIRTHDAY</div>
-        <div class="script" style="font-size:clamp(3rem,9vw,6rem)">NANDANA! 💗</div>
+        <div class="script" style="font-size:clamp(3rem,9vw,6rem)">SIDDHI! 💗</div>
         <div class="confetti">🌷 🧸 🎂 🫶 🎂 🧸 🌷</div>
         <p class="quote">
             You deserve all the happiness, love, success and beautiful things
