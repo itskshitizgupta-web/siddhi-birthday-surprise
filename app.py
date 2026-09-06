@@ -18,10 +18,14 @@ ROOT = Path(__file__).parent
 ASSETS = ROOT / "assets"
 
 def local_images():
-    if not ASSETS.exists():
-        return []
     extensions = {".jpg", ".jpeg", ".png", ".webp"}
-    return sorted([p for p in ASSETS.iterdir() if p.suffix.lower() in extensions])
+    images = []
+
+    for p in ROOT.rglob("*"):
+        if p.is_file() and p.suffix.lower() in extensions:
+            images.append(p)
+
+    return sorted(images)
 
 def image_data_uri(path):
     mime = {
