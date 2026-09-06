@@ -186,7 +186,7 @@ if st.session_state.page == "intro":
       <div class="script">Happy Birthday</div>
       <div class="script small">Siddhi Jeeee 💗</div>
       <p class="subtitle">I made this tiny universe for one very special person.<br>Take a breath. Press the button. Let the surprise begin. ✨</p>
-      <span class="pill">made with care</span><span class="pill">for my best friend</span><span class="pill">one-of-one</span>
+      <span class="pill">made with care</span><span class="pill">for someone irreplaceable</span><span class="pill">one-of-one</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -197,7 +197,7 @@ if st.session_state.page == "intro":
     <div class="glass card-pad center" style="margin-top:24px">
       <div class="icon">🌸</div>
       <div class="quote">&ldquo;Some people enter your life quietly… and somehow become one of the most beautiful parts of it.&rdquo;</div>
-      <p class="body">Siddhi, before anything else, I want you to know that <b>I am genuinely blessed to have you in my life.</b> ❤️</p>
+      <p class="body">Siddhi, before anything else, I want you to know that <b>I am genuinely blessed to have you in my life.</b> ❤️ You are more than just my best friend — you are someone incredibly special to me, someone I never want to take for granted.</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -257,7 +257,7 @@ elif st.session_state.page == "things":
             st.markdown(f'<div class="memory-card"><div class="icon">{icon}</div><h3>{title}</h3><p>{text}</p></div>', unsafe_allow_html=True)
             st.write("")
 
-    st.markdown('<div class="timeline"><div class="timeline-card"><div class="timeline-dot"></div><b>Then</b><p class="body">Two people talking, laughing, sharing random thoughts.</p></div><div class="timeline-card"><div class="timeline-dot"></div><b>Somewhere along the way</b><p class="body">Those little conversations started feeling important.</p></div><div class="timeline-card"><div class="timeline-dot"></div><b>Now</b><p class="body">I can honestly say I am grateful — and genuinely blessed — that you are my best friend. ❤️</p></div></div>', unsafe_allow_html=True)
+    st.markdown('<div class="timeline"><div class="timeline-card"><div class="timeline-dot"></div><b>Then</b><p class="body">Two people talking, laughing, sharing random thoughts.</p></div><div class="timeline-card"><div class="timeline-dot"></div><b>Somewhere along the way</b><p class="body">Those little conversations started feeling important.</p></div><div class="timeline-card"><div class="timeline-dot"></div><b>Now</b><p class="body">I can honestly say you became much more than just a best friend. You became one of those rare people who feel irreplaceable. I am genuinely blessed to have you in my life. ❤️</p></div></div>', unsafe_allow_html=True)
 
     if st.button("💌 There is a letter waiting for you", use_container_width=True, type="primary"):
         go("letter")
@@ -270,14 +270,14 @@ elif st.session_state.page == "letter":
     <div class="letter card-pad">
       <p class="quote"><b>Dear Siddhi jeeee,</b> 🌷</p>
       <p class="body">I don't think a website, a message, or even a thousand words can perfectly explain how much a person means to you. But I wanted to try anyway.</p>
-      <p class="body">I am <b>genuinely blessed to have you as my best friend.</b> ❤️ And I hope you never forget that.</p>
+      <p class="body">I am <b>genuinely blessed to have you in my life.</b> ❤️ You are more than just my best friend; you are someone deeply special to me, someone whose presence means more than I can put into words. And I hope you never forget that.</p>
       <p class="body">From our late-night talks to the times I have shared my thoughts and feelings with you, there is a kind of comfort in our friendship that I don't take for granted.</p>
       <p class="body">I love the little things too — caring about you, checking on you, laughing over random stuff, and of course your unforgettable <b>Jharkhandi accent</b> 😂❤️.</p>
       <p class="body">I hope this new year of your life brings you confidence, peace, beautiful people, exciting opportunities and every achievement you are working towards.</p>
       <p class="body">Please remember: <b>you are strong, you are brave, and you are capable of achieving anything you truly want.</b> ✨</p>
       <p class="body">When life feels difficult, don't let one bad chapter convince you that the whole story is bad. Keep going. Keep believing in yourself. You have so much ahead of you.</p>
       <p class="quote">Happy Birthday, Siddhi. 🎂💗<br>Thank you for being you.</p>
-      <p class="quote" style="text-align:right">— Your best friend 🫶</p>
+      <p class="quote" style="text-align:right">— Someone who will always care about you 🫶</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -303,7 +303,7 @@ elif st.session_state.page == "final":
       <p class="body" style="max-width:720px;margin:20px auto">I hope whenever you look back at this little surprise, you remember one simple thing:</p>
       <div style="font-family:'DM Serif Display',serif;color:#d54f7f;font-size:clamp(1.8rem,5vw,3.2rem);line-height:1.2">✨ I AM BLESSED TO HAVE YOU IN MY LIFE. ✨</div>
       <p class="body" style="max-width:680px;margin:22px auto">Keep smiling. Keep dreaming. Keep being the wonderfully chaotic, caring, strong Siddhi I know. And please never stop believing in yourself. 🌷</p>
-      <div class="pill">Happy Birthday, Bestie 🎂</div>
+      <div class="pill">Happy Birthday, Siddhi Jeeee 🎂💗</div>
       <div class="pill">Always cheering for you 🌟</div>
       <div class="pill">Made especially for you 💌</div>
     </div>
@@ -316,7 +316,7 @@ elif st.session_state.page == "final":
             with cols[i]:
                 st.markdown('<div class="polaroid">' + safe_img(img, "") + '</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="glass card-pad center" style="margin-top:25px"><div class="quote">&ldquo;Some friendships are not loud. They simply become home.&rdquo; 🫶</div><p class="body">Thank you for being a part of my story, Siddhi.</p></div>', unsafe_allow_html=True)
+    st.markdown('<div class="glass card-pad center" style="margin-top:25px"><div class="quote">&ldquo;Some friendships are not loud. They simply become home.&rdquo; 🫶</div><p class="body">Thank you for becoming such a special part of my story, Siddhi. Some people are simply friends; you became so much more than that to me. ❤️</p></div>', unsafe_allow_html=True)
 
     if st.button("🔁 Experience it from the beginning", use_container_width=True):
         st.session_state.page = "intro"
