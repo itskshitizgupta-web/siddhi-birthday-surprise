@@ -2,440 +2,333 @@ import streamlit as st
 from pathlib import Path
 import base64
 import random
+import time
 
-# -----------------------------
-# Siddhi Birthday Surprise 🎀
-# -----------------------------
+# ============================================================
+# SIDDHI JEEEE 💗 — Cinematic Birthday Experience
+# Streamlit-ready | Put this app.py beside the assets folder
+# ============================================================
+
 st.set_page_config(
-    page_title="Siddhi's Birthday Surprise 💗",
-    page_icon="🎂",
+    page_title="For Siddhi Jeeee 💗",
+    page_icon="💗",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
 
-# ---------- Helpers ----------
 ROOT = Path(__file__).parent
 ASSETS = ROOT / "assets"
 
+# -------------------- Helpers --------------------
 def local_images():
-    extensions = {".jpg", ".jpeg", ".png", ".webp"}
-    images = []
-    for p in ROOT.rglob("*"):
-        if p.is_file() and p.suffix.lower() in extensions:
-            images.append(p)
-    return sorted(images)
+    exts = {".jpg", ".jpeg", ".png", ".webp"}
+    return sorted([p for p in ASSETS.glob("*") if p.is_file() and p.suffix.lower() in exts])
 
-def image_data_uri(path):
-    mime = {
-        ".jpg": "image/jpeg",
-        ".jpeg": "image/jpeg",
-        ".png": "image/png",
-        ".webp": "image/webp",
-    }.get(path.suffix.lower(), "image/jpeg")
-    encoded = base64.b64encode(path.read_bytes()).decode()
-    return f"data:{mime};base64,{encoded}"
 
-# ---------- Session state ----------
+def data_uri(path: Path):
+    mime = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp"}.get(path.suffix.lower(), "image/jpeg")
+    return f"data:{mime};base64,{base64.b64encode(path.read_bytes()).decode()}"
+
+
+def safe_img(path: Path, cls="photo"):
+    return f'<img class="{cls}" src="{data_uri(path)}" alt="Siddhi memory">'
+
+
+def go(page):
+    st.session_state.page = page
+    st.rerun()
+
+# -------------------- State --------------------
 if "page" not in st.session_state:
-    st.session_state.page = "home"
-if "score" not in st.session_state:
-    st.session_state.score = 0
-if "answered" not in st.session_state:
-    st.session_state.answered = set()
-if "final_revealed" not in st.session_state:
-    st.session_state.final_revealed = False
+    st.session_state.page = "intro"
+if "opened" not in st.session_state:
+    st.session_state.opened = False
+if "love_meter" not in st.session_state:
+    st.session_state.love_meter = 0
+if "memory" not in st.session_state:
+    st.session_state.memory = 0
+if "final" not in st.session_state:
+    st.session_state.final = False
+if "start_time" not in st.session_state:
+    st.session_state.start_time = time.time()
 
-# ---------- CSS ----------
-st.markdown("""
+imgs = local_images()
+
+# -------------------- Global CSS / Animation Engine --------------------
+st.markdown(r"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Serif+Display&family=Manrope:wght@400;500;600;700&display=swap');
 
-html, body, [class*="css"] {
-    font-family: 'Poppins', sans-serif;
-}
-.stApp {
-    background:
-        radial-gradient(circle at 10% 10%, rgba(255,255,255,.75) 0 2px, transparent 3px),
-        radial-gradient(circle at 90% 20%, rgba(255,255,255,.55) 0 2px, transparent 3px),
-        linear-gradient(135deg, #fff0f6 0%, #ffe4ef 45%, #f6e9ff 100%);
-    background-size: 85px 85px, 120px 120px, auto;
-}
-.block-container {
-    max-width: 1100px;
-    padding-top: 2rem;
-    padding-bottom: 4rem;
-}
-.hero {
-    padding: 45px 25px 35px;
-    border-radius: 35px;
-    text-align: center;
-    background: rgba(255,255,255,.68);
-    border: 1px solid rgba(255,255,255,.9);
-    box-shadow: 0 18px 60px rgba(180, 80, 130, .15);
-    backdrop-filter: blur(12px);
-}
-.script {
-    font-family: 'Pacifico', cursive;
-    font-size: clamp(2.7rem, 8vw, 5.8rem);
-    color: #d94d86;
-    line-height: 1.05;
-}
-.subtitle {
-    font-size: 1.05rem;
-    color: #6d4d60;
-}
-.card {
-    padding: 25px;
-    border-radius: 25px;
-    background: rgba(255,255,255,.72);
-    border: 1px solid rgba(255,255,255,.9);
-    box-shadow: 0 10px 35px rgba(150,70,110,.10);
-    margin: 12px 0;
-}
-.quote {
-    font-size: 1.15rem;
-    line-height: 1.8;
-    color: #5d4051;
-}
-.memory {
-    padding: 18px;
-    border-radius: 22px;
-    background: rgba(255,255,255,.7);
-    margin-bottom: 15px;
-}
-.big-heart {
-    font-size: 4rem;
-    animation: pulse 1.8s infinite;
-}
-@keyframes pulse {
-    0%,100% { transform: scale(1); }
-    50% { transform: scale(1.12); }
-}
-.confetti {
-    font-size: 2.1rem;
-    letter-spacing: 12px;
-}
-.small {
-    color: #856477;
-    font-size: .9rem;
+:root{
+ --rose:#e85d8c; --rose2:#ff86ad; --wine:#7d3455; --ink:#3d2734;
+ --cream:#fffafc; --glass:rgba(255,255,255,.67);
 }
 
-/* Bright, readable birthday game cards */
-.game-card {
-    background: #ffffff !important;
-    color: #351b2d !important;
-    border-radius: 24px;
-    padding: 24px;
-    margin: 14px 0;
-    box-shadow: 0 10px 30px rgba(100, 35, 75, .12);
-    border: 2px solid #ffd1e3;
+*{box-sizing:border-box}
+html,body,[class*="css"]{font-family:'Manrope',sans-serif}
+.stApp{
+ min-height:100vh;
+ background:
+ radial-gradient(circle at 15% 15%,rgba(255,151,192,.20),transparent 27%),
+ radial-gradient(circle at 85% 12%,rgba(184,151,255,.18),transparent 25%),
+ radial-gradient(circle at 50% 100%,rgba(255,210,228,.25),transparent 35%),
+ linear-gradient(135deg,#fff9fc 0%,#fff0f7 48%,#f8f1ff 100%);
+ overflow-x:hidden;
 }
-.game-card h2, .game-card h3, .game-card p, .game-card b {
-    color: #351b2d !important;
+.block-container{max-width:1180px;padding-top:1rem;padding-bottom:5rem}
+
+/* Cinematic floating layer */
+.fx{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.orb{position:absolute;border-radius:50%;filter:blur(2px);opacity:.55;animation:drift 14s ease-in-out infinite}
+.orb.o1{width:180px;height:180px;background:#ffd0e1;left:-50px;top:18%;animation-delay:-2s}
+.orb.o2{width:240px;height:240px;background:#e8d4ff;right:-70px;top:35%;animation-delay:-7s}
+.orb.o3{width:120px;height:120px;background:#ffe6ba;left:45%;bottom:-35px;animation-delay:-4s}
+@keyframes drift{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(35px,-45px,0) scale(1.08)}}
+
+.particle{position:absolute;bottom:-50px;opacity:0;animation:floatUp linear infinite}
+@keyframes floatUp{0%{transform:translateY(0) rotate(0deg) scale(.7);opacity:0}12%{opacity:.75}80%{opacity:.55}100%{transform:translateY(-115vh) rotate(260deg) scale(1.25);opacity:0}}
+
+/* Glass / premium cards */
+.glass,.hero,.letter,.memory-card,.final-card,.timeline-card{
+ position:relative;z-index:2;
+ background:var(--glass);border:1px solid rgba(255,255,255,.85);
+ box-shadow:0 25px 80px rgba(125,52,85,.13), inset 0 1px 0 rgba(255,255,255,.85);
+ backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+ border-radius:32px;
 }
-.game-title {
-    color: #b52f6d !important;
-    font-weight: 700;
-}
+.hero{text-align:center;padding:clamp(32px,6vw,70px) 24px;margin:10px 0 24px;overflow:hidden}
+.hero:before{content:"";position:absolute;inset:-2px;border-radius:34px;padding:2px;background:linear-gradient(120deg,rgba(255,255,255,.8),rgba(232,93,140,.25),rgba(220,197,255,.45),rgba(255,255,255,.8));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:borderGlow 5s linear infinite}
+@keyframes borderGlow{to{filter:hue-rotate(360deg)}}
+.kicker{letter-spacing:5px;text-transform:uppercase;color:#aa5678;font-size:11px;font-weight:700}
+.script{font-family:'DM Serif Display',serif;color:#d54f7f;font-size:clamp(3.1rem,8vw,7.2rem);line-height:.95;text-shadow:0 8px 35px rgba(213,79,127,.18)}
+.script.small{font-size:clamp(2.5rem,6vw,5.3rem)}
+.subtitle{color:#725365;font-size:clamp(.9rem,2vw,1.08rem);line-height:1.8;max-width:720px;margin:18px auto}
+.pill{display:inline-block;padding:9px 15px;border-radius:999px;background:rgba(255,255,255,.78);color:#9b4c70;font-size:12px;font-weight:700;margin:5px;border:1px solid #f5d2e0}
+
+.section-title{font-family:'DM Serif Display',serif;color:#8f4163;font-size:clamp(2rem,5vw,3.4rem);text-align:center;margin:30px 0 10px}
+.center{text-align:center}
+.card-pad{padding:28px}
+.quote{font-family:'Cormorant Garamond',serif;color:#573c4b;font-size:clamp(1.15rem,2vw,1.45rem);line-height:1.7}
+.body{color:#634957;line-height:1.9;font-size:15px}
+
+/* Photo treatment */
+.photo-wrap{position:relative;overflow:hidden;border-radius:28px;background:#fff;padding:8px;box-shadow:0 20px 50px rgba(91,40,65,.16);transform:rotate(-.7deg);transition:.5s}
+.photo-wrap:hover{transform:rotate(0deg) translateY(-7px) scale(1.015)}
+.photo{width:100%;height:460px;object-fit:cover;border-radius:22px;display:block}
+.polaroid{background:#fff;padding:9px 9px 17px;border-radius:8px;box-shadow:0 18px 45px rgba(70,30,55,.16);transform:rotate(-2deg);transition:.5s}
+.polaroid:nth-child(2){transform:rotate(2deg)}
+.polaroid:nth-child(3){transform:rotate(-1deg)}
+.polaroid:hover{transform:translateY(-12px) rotate(0deg)}
+.polaroid img{width:100%;height:290px;object-fit:cover;border-radius:4px}
+.caption{font-family:'Cormorant Garamond',serif;color:#6c4657;text-align:center;font-size:18px;padding-top:9px}
+
+/* Memory constellation */
+.memory-card{padding:25px;text-align:center;height:100%;transition:.5s}
+.memory-card:hover{transform:translateY(-8px)}
+.icon{font-size:2.4rem;margin-bottom:8px}
+.memory-card h3{font-family:'DM Serif Display',serif;color:#a2486e;font-size:25px;margin:4px}
+.memory-card p{color:#6d5060;line-height:1.7;font-size:14px}
+
+/* Envelope */
+.envelope{max-width:600px;margin:30px auto;padding:45px 30px;text-align:center;border-radius:28px;background:linear-gradient(145deg,#fff,#fff0f7);border:1px solid #f3c8d9;box-shadow:0 25px 70px rgba(165,68,111,.17)}
+.envelope-icon{font-size:90px;animation:floatGift 2.5s ease-in-out infinite}
+@keyframes floatGift{50%{transform:translateY(-12px) rotate(2deg)}}
+
+/* Timeline */
+.timeline{position:relative;max-width:850px;margin:auto}
+.timeline:before{content:"";position:absolute;left:22px;top:0;bottom:0;width:2px;background:linear-gradient(#ffc0d5,#cdb8ef,#ffc0d5)}
+.timeline-card{margin:18px 0 18px 55px;padding:22px 25px}
+.timeline-dot{position:absolute;left:-47px;top:24px;width:17px;height:17px;background:#e85d8c;border:4px solid #fff;border-radius:50%;box-shadow:0 0 0 5px rgba(232,93,140,.15)}
+
+/* Final */
+.final-card{text-align:center;padding:55px 25px;overflow:hidden}
+.big-heart{font-size:90px;display:inline-block;animation:heartbeat 1.5s ease-in-out infinite}
+@keyframes heartbeat{0%,100%{transform:scale(1)}14%{transform:scale(1.15)}28%{transform:scale(1)}42%{transform:scale(1.1)}}
+.shimmer{background:linear-gradient(90deg,#c94d79,#ff8aae,#9c78cc,#c94d79);background-size:300% auto;color:transparent;background-clip:text;-webkit-background-clip:text;animation:shimmer 4s linear infinite}
+@keyframes shimmer{to{background-position:300% center}}
+
+/* Streamlit buttons */
+div.stButton>button{border:1px solid rgba(255,255,255,.85)!important;border-radius:999px!important;background:linear-gradient(100deg,#e65e8c,#d96a9a)!important;color:white!important;font-weight:700!important;min-height:48px;box-shadow:0 10px 28px rgba(213,79,127,.20)!important;transition:.25s!important}
+div.stButton>button:hover{transform:translateY(-3px) scale(1.01)!important;box-shadow:0 15px 34px rgba(213,79,127,.28)!important}
+.stProgress>div>div>div>div{background:linear-gradient(90deg,#e65e8c,#b67bd8)!important}
+
+/* Hide Streamlit chrome */
+#MainMenu{visibility:hidden} footer{visibility:hidden} header{visibility:hidden}
 </style>
 
+<div class="fx">
+  <div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
+  <span class="particle" style="left:4%;animation-duration:13s;animation-delay:-2s;font-size:22px;color:#e982a6">♥</span>
+  <span class="particle" style="left:12%;animation-duration:17s;animation-delay:-9s;font-size:16px;color:#c79bdc">✦</span>
+  <span class="particle" style="left:22%;animation-duration:15s;animation-delay:-4s;font-size:28px;color:#f0a0bb">♡</span>
+  <span class="particle" style="left:34%;animation-duration:19s;animation-delay:-12s;font-size:18px;color:#d39bc0">✧</span>
+  <span class="particle" style="left:47%;animation-duration:14s;animation-delay:-7s;font-size:24px;color:#e982a6">♥</span>
+  <span class="particle" style="left:59%;animation-duration:18s;animation-delay:-3s;font-size:17px;color:#c79bdc">✦</span>
+  <span class="particle" style="left:71%;animation-duration:16s;animation-delay:-11s;font-size:26px;color:#f0a0bb">♡</span>
+  <span class="particle" style="left:84%;animation-duration:20s;animation-delay:-6s;font-size:20px;color:#d39bc0">✧</span>
+  <span class="particle" style="left:94%;animation-duration:15s;animation-delay:-13s;font-size:25px;color:#e982a6">♥</span>
+</div>
 """, unsafe_allow_html=True)
 
-# ---------- Navigation ----------
-def nav():
-    cols = st.columns(5)
-    labels = [("🏠", "home"), ("🎮", "game"), ("📸", "memories"), ("💌", "letter"), ("🎉", "final")]
-    for col, (icon, page) in zip(cols, labels):
-        with col:
-            if st.button(icon, key=f"nav_{page}", use_container_width=True):
-                st.session_state.page = page
-                st.rerun()
+# -------------------- Top navigation --------------------
+nav = st.columns(5)
+for col, label, target in zip(nav, ["🏠 Home", "🎞 Memories", "🌙 Our Things", "💌 Letter", "🎉 Finale"], ["intro","memories","things","letter","final"]):
+    with col:
+        if st.button(label, key=f"nav_{target}", use_container_width=True):
+            go(target)
 
-nav()
-
-# ---------- HOME ----------
-if st.session_state.page == "home":
+# ==================== INTRO ====================
+if st.session_state.page == "intro":
     st.markdown("""
     <div class="hero">
-        <div style="font-size:2rem">🎀 🧸 🌷 ✨ 🎂 ✨ 🌷 🧸 🎀</div>
-        <div class="script">Happy Birthday</div>
-        <div class="script" style="font-size:clamp(2.5rem,7vw,5rem)">Siddhi 💗</div>
-        <p class="subtitle">
-            I made this little corner of the internet just for you, Siddhi. ❤️
-            Take your time... there are a few surprises waiting. 🥹
-        </p>
+      <div class="kicker">A PRIVATE LITTLE CORNER OF THE INTERNET</div>
+      <div style="font-size:26px;margin:12px 0">🎀 ✨ 🌷 💗 🌷 ✨ 🎀</div>
+      <div class="script">Happy Birthday</div>
+      <div class="script small">Siddhi Jeeee 💗</div>
+      <p class="subtitle">I made this tiny universe for one very special person.<br>Take a breath. Press the button. Let the surprise begin. ✨</p>
+      <span class="pill">made with care</span><span class="pill">for my best friend</span><span class="pill">one-of-one</span>
     </div>
     """, unsafe_allow_html=True)
 
-    imgs = local_images()
     if imgs:
-        st.image(str(imgs[0]), use_container_width=True)
-        st.caption("One of my favourite memories with you. ❤️")
-    else:
-        st.markdown("""
-        <div class="card" style="text-align:center">
-            <div style="font-size:5rem">🎂</div>
-            <h2>Today is YOUR day! 🥳</h2>
-            <p class="quote">Add your favourite Siddhi photos to the <b>assets</b> folder and they'll appear here automatically.</p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown('<div class="photo-wrap">' + safe_img(imgs[0], "photo") + '</div>', unsafe_allow_html=True)
 
     st.markdown("""
-    <div class="card">
-        <h2>🌸 Before you start...</h2>
-        <p class="quote">
-        Siddhi, I just want you to know one thing:
-        <b>I feel genuinely blessed to have you in my life.</b> ❤️
-        </p>
-        <p class="quote">
-        You are strong. You are brave. And you are capable of achieving
-        anything you truly want. Never forget how much potential you have. ✨
-        </p>
-        <p class="quote">
-        So today, forget everything for a little while, smile,
-        and enjoy this tiny surprise made especially for you. 🫶
-        </p>
+    <div class="glass card-pad center" style="margin-top:24px">
+      <div class="icon">🌸</div>
+      <div class="quote">“Some people enter your life quietly… and somehow become one of the most beautiful parts of it.”</div>
+      <p class="body">Siddhi, before anything else, I want you to know that <b>I am genuinely blessed to have you in my life.</b> ❤️</p>
     </div>
     """, unsafe_allow_html=True)
 
-    if st.button("💌 Start the surprise", use_container_width=True, type="primary"):
-        st.session_state.page = "game"
-        st.rerun()
+    if st.button("💌 OPEN YOUR BIRTHDAY UNIVERSE", use_container_width=True, type="primary"):
+        st.session_state.opened = True
+        go("memories")
 
-# ---------- GAME ----------
-elif st.session_state.page == "game":
-    st.markdown("""
-    <div class="hero">
-        <div class="script" style="font-size:3.4rem">Siddhi's Lucky Heart Challenge 💗</div>
-        <p class="subtitle">Pick a heart, answer a few surprises, and unlock your birthday message! ✨</p>
-    </div>
-    """, unsafe_allow_html=True)
+    if st.session_state.opened:
+        st.success("✨ The surprise is officially open. Keep going… there is more waiting for you. 💗")
 
-    if "heart_round" not in st.session_state:
-        st.session_state.heart_round = 1
-    if "heart_wins" not in st.session_state:
-        st.session_state.heart_wins = 0
-    if "heart_target" not in st.session_state:
-        st.session_state.heart_target = random.randint(1, 6)
-    if "heart_message" not in st.session_state:
-        st.session_state.heart_message = ""
-
-    st.markdown(f"""
-    <div class="game-card">
-      <h2 class="game-title">💗 Round {st.session_state.heart_round} / 3</h2>
-      <p><b>Find the lucky heart!</b> One of these six hearts hides a special surprise.</p>
-      <p>Lucky hearts found: <b>{st.session_state.heart_wins}</b> 🌟</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    heart_cols = st.columns(6)
-    for i, col in enumerate(heart_cols, start=1):
-        with col:
-            if st.button("💗", key=f"heart_{st.session_state.heart_round}_{i}", use_container_width=True):
-                if i == st.session_state.heart_target:
-                    st.session_state.heart_wins += 1
-                    st.session_state.heart_message = "🎉 You found it! Just like you, this heart was impossible to miss. ❤️"
-                else:
-                    st.session_state.heart_message = "😂 Oops! Not this one. Try another heart!"
-
-                if st.session_state.heart_round < 3:
-                    st.session_state.heart_round += 1
-                    st.session_state.heart_target = random.randint(1, 6)
-                else:
-                    st.session_state.heart_round = 4
-                st.rerun()
-
-    if st.session_state.heart_message:
-        st.markdown(f"""
-        <div class="game-card" style="text-align:center">
-          <h3>{st.session_state.heart_message}</h3>
-        </div>
-        """, unsafe_allow_html=True)
-
-    if st.session_state.heart_round >= 4:
-        st.balloons()
-        st.markdown("""
-        <div class="game-card" style="text-align:center">
-          <h2 class="game-title">🎁 Challenge Complete!</h2>
-          <p style="font-size:1.1rem">
-          Siddhi, whether you found every lucky heart or not, here's the real truth:
-          <b>you are one of the luckiest things that happened in my life, and I feel blessed to have you. ❤️</b>
-          </p>
-          <p style="font-size:1.05rem">
-          You are strong, brave and capable of achieving anything you set your heart on. 🌟
-          </p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        if st.button("🔄 Play the heart challenge again", use_container_width=True):
-            st.session_state.heart_round = 1
-            st.session_state.heart_wins = 0
-            st.session_state.heart_target = random.randint(1, 6)
-            st.session_state.heart_message = ""
-            st.rerun()
-
-        if st.button("📸 Unlock the memories", use_container_width=True, type="primary"):
-            st.session_state.page = "memories"
-            st.rerun()
-    else:
-        st.markdown("""
-        <div class="game-card">
-          <h3 class="game-title">🌷 Bonus question</h3>
-          <p><b>What should Siddhi always remember?</b></p>
-          <p>💪 She is strong &nbsp; • &nbsp; 🦁 She is brave &nbsp; • &nbsp; 🌟 She can achieve what she wants</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        if st.button("💌 Give me the next surprise", use_container_width=True):
-            st.session_state.page = "memories"
-            st.rerun()
-
-# ---------- MEMORIES ----------
+# ==================== MEMORIES ====================
 elif st.session_state.page == "memories":
-    st.markdown('<div class="hero"><div class="script" style="font-size:3.5rem">Our Little Memories 📸</div><p class="subtitle">Every picture has a story. Every story has a little piece of us.</p></div>', unsafe_allow_html=True)
+    st.markdown('<div class="hero"><div class="kicker">CHAPTER ONE</div><div class="section-title" style="margin-top:6px">Little Frames of Siddhi 📸</div><p class="subtitle">A few pictures. A thousand little feelings.</p></div>', unsafe_allow_html=True)
 
-    imgs = local_images()
-    if not imgs:
-        st.info("📂 No photos found yet. Put JPG/PNG/WEBP photos inside the app's `assets` folder, then refresh the page.")
-    else:
+    if imgs:
+        # Large feature image
+        feature = imgs[st.session_state.memory % len(imgs)]
+        st.markdown('<div class="photo-wrap">' + safe_img(feature, "photo") + '</div>', unsafe_allow_html=True)
+        st.caption("✨ Every version of you deserves a place in this little story.")
+
+        st.markdown('<div class="section-title">The Gallery ✨</div>', unsafe_allow_html=True)
+        cols = st.columns(2)
         captions = [
-            "One of my favourite memories with you. ❤️",
-            "That smile deserves its own little corner here. 🌷",
-            "A beautiful moment that I am glad I get to remember. ✨",
-            "One more chapter in our little collection of memories. 💗",
-            "Some pictures become memories; some memories become priceless. 🥹",
+            "That smile. That's the whole caption. 🌷",
+            "A tiny frame from a very big collection of memories. 💗",
+            "One of those pictures that just feels like you. ✨",
+            "Proof that ordinary moments can become priceless. 🫶",
+            "And yes… you looked this cute. 😂❤️",
         ]
         for i, img in enumerate(imgs):
-            st.markdown('<div class="memory">', unsafe_allow_html=True)
-            st.image(str(img), use_container_width=True)
-            st.markdown(f"<p class='quote'><b>Memory {i+1} 🌸</b><br>{captions[i % len(captions)]}</p>", unsafe_allow_html=True)
-            st.markdown("</div>", unsafe_allow_html=True)
+            with cols[i % 2]:
+                st.markdown('<div class="polaroid">' + safe_img(img, "") + f'<div class="caption">{captions[i % len(captions)]}</div></div>', unsafe_allow_html=True)
+                st.write("")
 
-    st.markdown("""
-    <div class="card">
-      <h2>🌙 And then there are the memories no camera can capture...</h2>
-      <p class="quote">
-      The random conversations. The laughs. The moments when we talked about
-      everything and nothing. Those are some of the memories I value the most.
-      ❤️
-      </p>
-    </div>
-    """, unsafe_allow_html=True)
+        if st.button("✨ Show me another favourite", use_container_width=True):
+            st.session_state.memory += 1
+            st.rerun()
 
-    if st.button("💌 Read my message", use_container_width=True):
-        st.session_state.page = "letter"
-        st.rerun()
+    st.markdown('<div class="glass card-pad center" style="margin-top:25px"><div class="quote">“The best memories aren't always photographed. Sometimes they are just two people talking until the night gets too quiet.” 🌙</div></div>', unsafe_allow_html=True)
 
-# ---------- LETTER ----------
+    if st.button("🌙 Go to the memories that cameras can't capture", use_container_width=True):
+        go("things")
+
+# ==================== OUR THINGS ====================
+elif st.session_state.page == "things":
+    st.markdown('<div class="hero"><div class="kicker">CHAPTER TWO</div><div class="section-title" style="margin-top:6px">The Little Things 🌙</div><p class="subtitle">The moments that don't need a camera to be remembered.</p></div>', unsafe_allow_html=True)
+
+    items = [
+        ("🌙", "Late-night talks", "Those conversations that start with one random topic and somehow turn into everything — life, dreams, problems, nonsense and laughter."),
+        ("💭", "Sharing everything", "Being able to share thoughts and feelings without worrying about being judged. That kind of comfort is rare, and I value it."),
+        ("🫶", "Caring for you", "Looking out for you, checking in, wanting you to be okay — because your happiness genuinely matters to me."),
+        ("😂", "The Jharkhandi accent", "Okay, this absolutely deserves its own chapter. 😂 Some things become inside jokes simply because they are too adorable to forget."),
+    ]
+    cols = st.columns(2)
+    for i, (icon, title, text) in enumerate(items):
+        with cols[i % 2]:
+            st.markdown(f'<div class="memory-card"><div class="icon">{icon}</div><h3>{title}</h3><p>{text}</p></div>', unsafe_allow_html=True)
+            st.write("")
+
+    st.markdown('<div class="timeline"><div class="timeline-card"><div class="timeline-dot"></div><b>Then</b><p class="body">Two people talking, laughing, sharing random thoughts.</p></div><div class="timeline-card"><div class="timeline-dot"></div><b>Somewhere along the way</b><p class="body">Those little conversations started feeling important.</p></div><div class="timeline-card"><div class="timeline-dot"></div><b>Now</b><p class="body">I can honestly say I am grateful — and genuinely blessed — that you are my best friend. ❤️</p></div></div>', unsafe_allow_html=True)
+
+    if st.button("💌 There is a letter waiting for you", use_container_width=True, type="primary"):
+        go("letter")
+
+# ==================== LETTER ====================
 elif st.session_state.page == "letter":
-    st.markdown('<div class="hero"><div class="big-heart">💗</div><div class="script" style="font-size:3.4rem">A Letter for Siddhi</div></div>', unsafe_allow_html=True)
+    st.markdown('<div class="hero"><div class="big-heart">💗</div><div class="kicker">CHAPTER THREE</div><div class="section-title" style="margin-top:6px">A Letter for Siddhi</div><p class="subtitle">Read this slowly. I meant every word.</p></div>', unsafe_allow_html=True)
 
     st.markdown("""
-    <div class="card">
-    <p class="quote"><b>Dear Siddhi,</b> 🌷</p>
-
-    <p class="quote">
-    I don't know if a website can ever properly explain how much someone means
-    to you, but I wanted to try.
-    </p>
-
-    <p class="quote">
-    I genuinely feel <b>blessed to have you in my life.</b> ❤️
-    Thank you for being someone I can talk to, laugh with, share things with,
-    and simply be myself around.
-    </p>
-
-    <p class="quote">
-    I hope you never underestimate yourself. You are <b>strong</b>, you are
-    <b>brave</b>, and you have so much more potential than you sometimes
-    realise.
-    </p>
-
-    <p class="quote">
-    Whatever dream you choose, whatever path you take, I hope you chase it
-    fearlessly. <b>You can achieve anything you truly want.</b> ✨
-    </p>
-
-    <p class="quote">
-    Keep smiling. Keep being the person you are. And when life gets difficult,
-    remember that difficult days don't define you — the way you keep going does.
-    🫶
-    </p>
-
-    <p class="quote">
-    Happy Birthday, Siddhi. 🎂<br>
-    May this year bring you beautiful memories, big achievements,
-    peaceful moments and countless reasons to smile.
-    </p>
-
-    <p class="quote"><b>I'm really lucky to have you. ❤️</b></p>
-    <p style="text-align:right;font-size:1.1rem">— From someone who cares about you a lot 🌸</p>
+    <div class="letter card-pad">
+      <p class="quote"><b>Dear Siddhi jeeee,</b> 🌷</p>
+      <p class="body">I don't think a website, a message, or even a thousand words can perfectly explain how much a person means to you. But I wanted to try anyway.</p>
+      <p class="body">I am <b>genuinely blessed to have you as my best friend.</b> ❤️ And I hope you never forget that.</p>
+      <p class="body">From our late-night talks to the times I have shared my thoughts and feelings with you, there is a kind of comfort in our friendship that I don't take for granted.</p>
+      <p class="body">I love the little things too — caring about you, checking on you, laughing over random stuff, and of course your unforgettable <b>Jharkhandi accent</b> 😂❤️.</p>
+      <p class="body">I hope this new year of your life brings you confidence, peace, beautiful people, exciting opportunities and every achievement you are working towards.</p>
+      <p class="body">Please remember: <b>you are strong, you are brave, and you are capable of achieving anything you truly want.</b> ✨</p>
+      <p class="body">When life feels difficult, don't let one bad chapter convince you that the whole story is bad. Keep going. Keep believing in yourself. You have so much ahead of you.</p>
+      <p class="quote">Happy Birthday, Siddhi. 🎂💗<br>Thank you for being you.</p>
+      <p class="quote" style="text-align:right">— Your best friend 🫶</p>
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("""
-    <div class="card" style="text-align:center">
-      <h2>🎁 There's still one last surprise...</h2>
-      <p class="quote">Don't click the button unless you're ready. 👀</p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="envelope"><div class="envelope-icon">💌</div><h2 style="color:#a2486e;font-family:DM Serif Display,serif">One last secret…</h2><p class="body">The final page is not another message. It is the part I really want you to remember.</p></div>', unsafe_allow_html=True)
 
-    if st.button("✨ One Last Thing...", use_container_width=True, type="primary"):
-        st.session_state.page = "final"
-        st.session_state.final_revealed = True
-        st.rerun()
+    if st.button("✨ OPEN THE FINAL REVEAL", use_container_width=True, type="primary"):
+        st.session_state.final = True
+        go("final")
 
-# ---------- FINAL ----------
+# ==================== FINAL ====================
 elif st.session_state.page == "final":
-    if st.session_state.final_revealed:
+    if st.session_state.final:
         st.balloons()
 
     st.markdown("""
-    <div class="hero">
-        <div class="confetti">🎉 ✨ 🎊 💗 🎊 ✨ 🎉</div>
-        <div class="script" style="font-size:clamp(3rem,9vw,6rem)">HAPPY BIRTHDAY</div>
-        <div class="script" style="font-size:clamp(3rem,9vw,6rem)">SIDDHI! 💗</div>
-        <div class="confetti">🌷 🧸 🎂 🫶 🎂 🧸 🌷</div>
-        <p class="quote">
-            You deserve all the happiness, love, success and beautiful things
-            life has to offer. ✨
-        </p>
-        <p class="quote"><b>Never stop believing in yourself. ❤️</b></p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    imgs = local_images()
-    if imgs:
-        st.markdown("### 📸 One final look at some favourite moments")
-        cols = st.columns(min(3, len(imgs)))
-        for i, img in enumerate(imgs[:6]):
-            with cols[i % len(cols)]:
-                st.image(str(img), use_container_width=True)
-
-    st.markdown("""
-    <div class="card" style="text-align:center">
+    <div class="final-card">
+      <div class="confetti" style="font-size:30px;letter-spacing:14px">🎉 ✨ 🎊 💗 🎊 ✨ 🎉</div>
       <div class="big-heart">❤️</div>
-      <h2>Siddhi, I'm blessed to have you.</h2>
-      <p class="quote">
-      Stay strong. Stay brave. Dream big.<br>
-      And go achieve everything your heart wants. 🌟
-      </p>
-      <p class="small">Made with a ridiculous amount of love, effort and probably too many emojis. 😂💗</p>
+      <div class="kicker">THE FINAL REVEAL</div>
+      <div class="script shimmer">Siddhi Jeeee</div>
+      <div class="script small">You are special. 💗</div>
+      <p class="quote">Not because it's your birthday.<br>Because you are you.</p>
+      <p class="body" style="max-width:720px;margin:20px auto">I hope whenever you look back at this little surprise, you remember one simple thing:</p>
+      <div style="font-family:'DM Serif Display',serif;color:#d54f7f;font-size:clamp(1.8rem,5vw,3.2rem);line-height:1.2">✨ I AM BLESSED TO HAVE YOU IN MY LIFE. ✨</div>
+      <p class="body" style="max-width:680px;margin:22px auto">Keep smiling. Keep dreaming. Keep being the wonderfully chaotic, caring, strong Siddhi I know. And please never stop believing in yourself. 🌷</p>
+      <div class="pill">Happy Birthday, Bestie 🎂</div>
+      <div class="pill">Always cheering for you 🌟</div>
+      <div class="pill">Made especially for you 💌</div>
     </div>
     """, unsafe_allow_html=True)
 
-    if st.button("🔁 Replay from the beginning", use_container_width=True):
-        st.session_state.page = "home"
-        st.session_state.score = 0
-        st.session_state.answered = set()
-        st.session_state.final_revealed = False
+    if imgs:
+        st.markdown('<div class="section-title">A final little gallery 🌸</div>', unsafe_allow_html=True)
+        cols = st.columns(len(imgs))
+        for i, img in enumerate(imgs):
+            with cols[i]:
+                st.markdown('<div class="polaroid">' + safe_img(img, "") + '</div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="glass card-pad center" style="margin-top:25px"><div class="quote">“Some friendships are not loud. They simply become home.” 🫶</div><p class="body">Thank you for being a part of my story, Siddhi.</p></div>', unsafe_allow_html=True)
+
+    if st.button("🔁 Experience it from the beginning", use_container_width=True):
+        st.session_state.page = "intro"
+        st.session_state.opened = False
+        st.session_state.final = False
+        st.session_state.memory = 0
         st.rerun()
 
-# ---------- Optional music ----------
-st.markdown("---")
-st.markdown("### 🎵 Birthday music")
+# -------------------- Optional music --------------------
 music = ASSETS / "birthday_music.mp3"
 if music.exists():
-    st.audio(str(music))
+    st.markdown('<div style="height:18px"></div>', unsafe_allow_html=True)
+    st.audio(str(music), format="audio/mp3")
 else:
-    st.caption("Optional: put a file named `birthday_music.mp3` inside the `assets` folder to add music.")
+    st.markdown('<p class="small center" style="margin-top:28px">🎵 Tip: add <b>birthday_music.mp3</b> inside <b>assets/</b> if you want background birthday music.</p>', unsafe_allow_html=True)
