@@ -18,14 +18,10 @@ ROOT = Path(__file__).parent
 ASSETS = ROOT / "assets"
 
 def local_images():
+    if not ASSETS.exists():
+        return []
     extensions = {".jpg", ".jpeg", ".png", ".webp"}
-    images = []
-
-    for p in ROOT.rglob("*"):
-        if p.is_file() and p.suffix.lower() in extensions:
-            images.append(p)
-
-    return sorted(images)
+    return sorted([p for p in ASSETS.iterdir() if p.suffix.lower() in extensions])
 
 def image_data_uri(path):
     mime = {
@@ -187,7 +183,7 @@ if st.session_state.page == "home":
 
 # ---------- GAME ----------
 elif st.session_state.page == "game":
-    st.markdown('<div class="hero"><div class="script" style="font-size:3.5rem">A Little Game 🎮</div><p class="subtitle">Let's see how well you know this friendship! 😌</p></div>', unsafe_allow_html=True)
+    st.markdown("""<div class="hero"><div class="script" style="font-size:3.5rem">A Little Game 🎮</div><p class="subtitle">Let's see how well you know this friendship! 😌</p></div>""", unsafe_allow_html=True)
 
     questions = [
         ("q1", "Which one sounds most like us? 🫶",
@@ -216,7 +212,7 @@ elif st.session_state.page == "game":
             st.balloons()
             st.markdown('<div class="card" style="text-align:center"><h2>Okayyy, you know me/us pretty well! 😂❤️</h2><p class="quote">Now you deserve the next surprise...</p></div>', unsafe_allow_html=True)
         else:
-            st.markdown('<div class="card" style="text-align:center"><h2>Nice try! 😂❤️</h2><p class="quote">Luckily, birthdays aren't graded.</p></div>', unsafe_allow_html=True)
+            st.markdown("""<div class="card" style="text-align:center"><h2>Nice try! 😂❤️</h2><p class="quote">Luckily, birthdays aren't graded.</p></div>""", unsafe_allow_html=True)
 
     if st.button("📸 Go to memories", use_container_width=True):
         st.session_state.page = "memories"
@@ -371,3 +367,4 @@ if music.exists():
     st.audio(str(music))
 else:
     st.caption("Optional: put a file named `birthday_music.mp3` inside the `assets` folder to add music.")
+        
